@@ -1,19 +1,17 @@
 # Thunder
 
 Thunder is a game engine built from scratch in C(89). 
-It is built to be fast, light, and run literally anywhere with no dependencies (not even libc).
+It is built to be fast, light, and run literally anywhere with no dependencies.
 
 ## Getting Started
-Thunder uses a custom build system, which needs to be bootstrapped by compiling `build.c` in the root directory of the project. 
-You can then run the resulting executable to see what is possible with Thunder.
-
-### Example Bootstrap Commands
-MacOS (clang)
+Thunder uses CMake as its build system, and includes nothing by default.
+Everything is a plugin, and you can build Thunder in any way you want.
+The recommended way to get started is to take a look at the `examples` directory,
+and then pick one or more examples to build. Then, simply run a command like
 ```sh
-clang -nostdlib -std=c89 -Isrc/c/include -O2 -e __start build.c -o build
+cmake -B build -DEXAMPLES=example1;example2
 ```
-These are just examples, any C compiler that complies with the standard should work fine. 
-If not, please open an issue. 
+
 NOTE: I can only test the code on macOS for now.
 
 ## License
