@@ -6,16 +6,21 @@ static void file_callback(
   const th_log_entry_t *restrict entry
 ) {
   static bool message_in_progress = false;
+  static bool other_thread_writing = false;
+
   th_log_file_sink_t *sink = (th_log_file_sink_t *)header;
 
-  if (sink->min_level > level) {
+  if (sink->min_level > level)
     return;
-  }
 
   pthread_mutex_lock(&sink->lock);
 
+  if (other_thread_writing)
+    return;
+
   if (!message_in_progress) {
     message_in_progress = true;
+    other_thread_writing = true;
     struct tm *timeinfo = localtime(&entry->timestamp);
     fprintf(
       sink->file,
@@ -37,6 +42,7 @@ static void file_callback(
     fprintf(sink->file, "\n");
     fflush(sink->file);
     message_in_progress = false;
+    other_thread_writing = false;
   }
 
   pthread_mutex_unlock(&sink->lock);
