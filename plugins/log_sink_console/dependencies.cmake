@@ -1,0 +1,1 @@
+set(PLUGIN_log_sink_console_DEPENDENCIES log)

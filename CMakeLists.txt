@@ -54,6 +54,9 @@ endforeach()
 
 # print the resolved plugins
 get_property(RESOLVED_PLUGINS GLOBAL PROPERTY RESOLVED_PLUGINS)
+# to ensure we don't add a plugin twice
+list(REMOVE_DUPLICATES RESOLVED_PLUGINS)
+
 message(STATUS "Selected plugins: ${RESOLVED_PLUGINS}")
 
 foreach(plugin IN LISTS RESOLVED_PLUGINS)

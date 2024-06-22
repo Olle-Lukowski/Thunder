@@ -12,6 +12,8 @@ static void file_callback(
     return;
   }
 
+  pthread_mutex_lock(&sink->lock);
+
   if (!message_in_progress) {
     message_in_progress = true;
     fprintf(
@@ -32,6 +34,8 @@ static void file_callback(
     fflush(sink->file);
     message_in_progress = false;
   }
+
+  pthread_mutex_unlock(&sink->lock);
 }
 
 bool th_log_file_sink_init(
@@ -47,6 +51,11 @@ bool th_log_file_sink_init(
     return false;
   }
 
+  if (pthread_mutex_init(&sink->lock, NULL) != 0) {
+    fclose(sink->file);
+    return false;
+  }
+
   return true;
 }
 
@@ -54,4 +63,6 @@ void th_log_file_sink_deinit(th_log_file_sink_t *sink) {
   if (sink->file) {
     fclose(sink->file);
   }
+
+  pthread_mutex_destroy(&sink->lock);
 }

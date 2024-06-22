@@ -3,13 +3,16 @@
 
 #include <stdio.h>
 
+#include <pthread.h>
+
 #include "log/log.h"
 
 typedef struct th_log_file_sink th_log_file_sink_t;
 struct th_log_file_sink {
   th_log_sink_header_t header;
-  FILE *file;
   th_log_level_t min_level;
+  FILE *file;
+  pthread_mutex_t lock;
 };
 
 bool th_log_file_sink_init(

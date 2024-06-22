@@ -4,7 +4,7 @@
 #include <stdbool.h>
 
 #ifndef TH_LOG_PART_SIZE
-#define TH_LOG_PART_SIZE 10
+#define TH_LOG_PART_SIZE 1024
 #endif
 
 #ifndef TH_LOG_MAX_SINKS

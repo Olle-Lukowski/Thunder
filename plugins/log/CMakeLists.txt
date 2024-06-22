@@ -1,6 +1,6 @@
 include(dependencies.cmake)
 
-add_library(log STATIC src/log.c src/file.c src/console.c)
+add_library(log STATIC src/log.c)
 
 target_include_directories(log PUBLIC include)
 

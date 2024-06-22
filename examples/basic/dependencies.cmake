@@ -1,1 +1,1 @@
-set(EXAMPLE_basic_DEPENDENCIES core log)
+set(EXAMPLE_basic_DEPENDENCIES core log_sink_file log_sink_console)
