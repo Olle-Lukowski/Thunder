@@ -16,10 +16,14 @@ static void file_callback(
 
   if (!message_in_progress) {
     message_in_progress = true;
+    struct tm *timeinfo = localtime(&entry->timestamp);
     fprintf(
       sink->file,
-      "[%s] [%s:%d] [%s] %s",
+      "[%s] [%02d:%02d:%02d] [%s:%d] [%s] %s",
       th_log_level_names[level],
+      timeinfo->tm_hour,
+      timeinfo->tm_min,
+      timeinfo->tm_sec,
       entry->file,
       entry->line,
       entry->func,

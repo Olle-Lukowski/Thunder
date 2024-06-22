@@ -2,6 +2,7 @@
 #define TH_LOG_LOG_H_
 
 #include <stdbool.h>
+#include <time.h>
 
 #ifndef TH_LOG_PART_SIZE
 #define TH_LOG_PART_SIZE 1024
@@ -30,6 +31,7 @@ struct th_log_entry {
   int line;
   const char *restrict func;
   char message[TH_LOG_PART_SIZE + 1]; /* +1 for '\0' */
+  time_t timestamp;
   bool is_last_part;
 };
 

@@ -39,6 +39,7 @@ void th_log_args(
   entry.file = file;
   entry.line = line;
   entry.func = func;
+  time(&entry.timestamp);
 
   int total_size = vsnprintf(NULL, 0, format, args);
   if (total_size < 0) {
