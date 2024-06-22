@@ -15,8 +15,10 @@ static void file_callback(
 
   pthread_mutex_lock(&sink->lock);
 
-  if (other_thread_writing)
+  if (other_thread_writing) {
+    pthread_mutex_unlock(&sink->lock);
     return;
+  }
 
   if (!message_in_progress) {
     message_in_progress = true;

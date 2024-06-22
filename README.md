@@ -1,6 +1,6 @@
 # Thunder
 
-Thunder is a game engine built from scratch in C(89). 
+Thunder is a game engine built from scratch in C(99). 
 It is built to be fast, light, and run literally anywhere with no dependencies.
 
 ## Getting Started
