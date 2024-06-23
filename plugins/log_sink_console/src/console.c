@@ -1,6 +1,7 @@
 #include "log/sinks/console.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 /* Foreground colors */
 #define FG_BLACK   "\x1b[30m"
@@ -35,107 +36,144 @@
 
 static void console_callback_color(
   th_log_sink_header_t *header,
-  th_log_level_t level,
-  const th_log_entry_t *restrict entry
+  th_log_entry_t *restrict entry
 ) {
   th_log_console_sink_t *sink = (th_log_console_sink_t *)header;
 
-  if (sink->min_level > level)
+  if (sink->min_level > entry->level)
     return;
 
-  pthread_mutex_lock(&sink->lock);
-
-  if (sink->thread_writing && entry->is_first_part) {
-    pthread_mutex_unlock(&sink->lock);
-    return;
+  const char *color = NULL;
+  switch (entry->level) {
+    case TH_LOG_LEVEL_DEBUG:
+      color = FG_BLUE;
+      break;
+    case TH_LOG_LEVEL_INFO:
+      color = FG_GREEN;
+      break;
+    case TH_LOG_LEVEL_WARN:
+      color = FG_YELLOW;
+      break;
+    case TH_LOG_LEVEL_ERROR:
+      color = FG_RED;
+      break;
+    case TH_LOG_LEVEL_FATAL:
+      color = ATTR_BOLD FG_RED;
+      break;
+    default:
+      color = ATTR_RESET FG_RESET;
+      break; /* Trace needs no special treatment */
   }
 
-  if (!sink->message_in_progress) {
-    sink->message_in_progress = true;
-    sink->thread_writing = true;
-    const char *color = NULL;
-    switch (level) {
-      case TH_LOG_LEVEL_DEBUG:
-        color = FG_BLUE;
-        break;
-      case TH_LOG_LEVEL_INFO:
-        color = FG_GREEN;
-        break;
-      case TH_LOG_LEVEL_WARN:
-        color = FG_YELLOW;
-        break;
-      case TH_LOG_LEVEL_ERROR:
-        color = FG_RED;
-        break;
-      case TH_LOG_LEVEL_FATAL:
-        color = ATTR_BOLD FG_RED;
-        break;
-      default:
-        color = ATTR_RESET FG_RESET;
-        break; /* Trace needs no special treatment */
-    }
+  char buf[TH_LOG_SMALL_MSG_LIMIT];
+
+  // check if the entire message would fit
+  va_list copy;
+  va_copy(copy, entry->args);
+
+  int total_len = vsnprintf(
+    NULL,
+    0,
+    entry->format,
+    copy
+  );
+
+  va_end(copy);
+
+  if (total_len <= TH_LOG_SMALL_MSG_LIMIT) {
+    vsnprintf(
+      buf,
+      sizeof(buf),
+      entry->format,
+      entry->args
+    );
 
     printf(
-      "%s[%s] [%s:%d] [%s] %s",
+      "%s[%s] [%s:%d] [%s] %s" ATTR_RESET FG_RESET "\n",
       color,
-      th_log_level_names[level],
+      th_log_level_names[entry->level],
       entry->file,
       entry->line,
       entry->func,
-      entry->message
+      buf
     );
   } else {
-    printf("%s", entry->message);
-  }
+    char *msg = malloc(total_len + 1);
 
-  if (sink->message_in_progress && entry->is_last_part) {
-    printf(ATTR_RESET FG_RESET "\n");
-    sink->message_in_progress = false;
-    sink->thread_writing = false;
-  }
+    vsnprintf(
+      msg,
+      total_len + 1,
+      entry->format,
+      entry->args
+    );
 
-  pthread_mutex_unlock(&sink->lock);
+    printf(
+      "%s[%s] [%s:%d] [%s] %s" ATTR_RESET FG_RESET "\n",
+      color,
+      th_log_level_names[entry->level],
+      entry->file,
+      entry->line,
+      entry->func,
+      msg
+    );
+
+    free(msg);
+  }
 }
 
 static void console_callback(
   th_log_sink_header_t *header,
-  th_log_level_t level,
-  const th_log_entry_t *restrict entry
+  th_log_entry_t *restrict entry
 ) {
   th_log_console_sink_t *sink = (th_log_console_sink_t *)header;
 
-  if (sink->min_level > level)
+  if (sink->min_level > entry->level)
     return;
 
-  pthread_mutex_lock(&sink->lock);
+  char buf[TH_LOG_SMALL_MSG_LIMIT];
 
-  if (sink->thread_writing) {
-    pthread_mutex_unlock(&sink->lock);
-    return;
-  }
+  // check if the entire message would fit
+  va_list copy;
+  va_copy(copy, entry->args);
 
-  if (!sink->message_in_progress) {
-    sink->message_in_progress = true;
-    sink->thread_writing = true;
+  int total_len = vsnprintf(
+    buf,
+    sizeof(buf),
+    entry->format,
+    copy
+  );
+
+  va_end(copy);
+  if (total_len <= TH_LOG_SMALL_MSG_LIMIT) {
     printf(
-      "[%s] [%s:%d] [%s] %s",
-      th_log_level_names[level],
+      "[%s] [%s:%d] [%s] %s" ATTR_RESET FG_RESET "\n",
+      th_log_level_names[entry->level],
       entry->file,
       entry->line,
       entry->func,
-      entry->message
+      buf
     );
   } else {
-    printf("%s", entry->message);
-  }
+    char *msg = malloc(total_len + 1);
 
-  if (sink->message_in_progress && entry->is_last_part) {
-    printf("\n");
-    sink->message_in_progress = false;
-    sink->thread_writing = false;
-  }
+    vsnprintf(
+      msg,
+      total_len + 1,
+      entry->format,
+      entry->args
+    );
 
-  pthread_mutex_unlock(&sink->lock);
+    printf(
+      "[%s] [%s:%d] [%s] %s" ATTR_RESET FG_RESET "\n",
+      th_log_level_names[entry->level],
+      entry->file,
+      entry->line,
+      entry->func,
+      msg
+    );
+
+    free(msg);
+  }
 }
 
 bool th_log_console_sink_init(
@@ -146,15 +184,6 @@ bool th_log_console_sink_init(
   sink->header.callback = ansi_color ? 
     console_callback_color : console_callback;
   sink->min_level = min_level;
-  sink->message_in_progress = false;
-  sink->thread_writing = false;
-
-  if (pthread_mutex_init(&sink->lock, NULL))
-    return false;
 
   return true;
-}
-
-void th_log_console_sink_deinit(th_log_console_sink_t *sink) {
-  pthread_mutex_destroy(&sink->lock);
 }

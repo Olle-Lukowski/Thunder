@@ -20,7 +20,7 @@ void setup(ecs_world_t *world, ecs_app_desc_t *app) {
   th_log_console_sink_init(&sink, TH_LOG_LEVEL_TRACE, true);
   th_log_add_sink((th_log_sink_header_t *)&sink);
 
-  th_log_file_sink_init(&file_sink, "log.txt", TH_LOG_LEVEL_TRACE);
+  th_log_file_sink_init(&file_sink, TH_LOG_LEVEL_TRACE, "log.txt");
   th_log_add_sink((th_log_sink_header_t *)&file_sink);
 
   TH_LOG_FATAL("Hello, World!");
@@ -51,6 +51,5 @@ void setup(ecs_world_t *world, ecs_app_desc_t *app) {
 
 void cleanup() {
   th_log_file_sink_deinit(&file_sink);
-  th_log_console_sink_deinit(&sink);
   th_log_clear_sinks();
 }
