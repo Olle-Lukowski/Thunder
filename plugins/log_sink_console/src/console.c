@@ -38,15 +38,21 @@ static void console_callback_color(
   th_log_level_t level,
   const th_log_entry_t *restrict entry
 ) {
-  static bool message_in_progress = false;
   th_log_console_sink_t *sink = (th_log_console_sink_t *)header;
 
-  if (sink->min_level > level) {
+  if (sink->min_level > level)
+    return;
+
+  pthread_mutex_lock(&sink->lock);
+
+  if (sink->thread_writing) {
+    pthread_mutex_unlock(&sink->lock);
     return;
   }
 
-  if (!message_in_progress) {
-    message_in_progress = true;
+  if (!sink->message_in_progress) {
+    sink->message_in_progress = true;
+    sink->thread_writing = true;
     const char *color = NULL;
     switch (level) {
       case TH_LOG_LEVEL_DEBUG:
@@ -82,10 +88,13 @@ static void console_callback_color(
     printf("%s", entry->message);
   }
 
-  if (message_in_progress && entry->is_last_part) {
+  if (sink->message_in_progress && entry->is_last_part) {
     printf(ATTR_RESET FG_RESET "\n");
-    message_in_progress = false;
+    sink->message_in_progress = false;
+    sink->thread_writing = false;
   }
+
+  pthread_mutex_unlock(&sink->lock);
 }
 
 static void console_callback(
@@ -93,15 +102,21 @@ static void console_callback(
   th_log_level_t level,
   const th_log_entry_t *restrict entry
 ) {
-  static bool message_in_progress = false;
   th_log_console_sink_t *sink = (th_log_console_sink_t *)header;
 
-  if (sink->min_level > level) {
+  if (sink->min_level > level)
+    return;
+
+  pthread_mutex_lock(&sink->lock);
+
+  if (sink->thread_writing) {
+    pthread_mutex_unlock(&sink->lock);
     return;
   }
 
-  if (!message_in_progress) {
-    message_in_progress = true;
+  if (!sink->message_in_progress) {
+    sink->message_in_progress = true;
+    sink->thread_writing = true;
     printf(
       "[%s] [%s:%d] [%s] %s",
       th_log_level_names[level],
@@ -114,17 +129,32 @@ static void console_callback(
     printf("%s", entry->message);
   }
 
-  if (message_in_progress && entry->is_last_part) {
+  if (sink->message_in_progress && entry->is_last_part) {
     printf("\n");
-    message_in_progress = false;
+    sink->message_in_progress = false;
+    sink->thread_writing = false;
   }
+
+  pthread_mutex_unlock(&sink->lock);
 }
 
-void th_log_console_sink_init(
+bool th_log_console_sink_init(
   th_log_console_sink_t *sink,
   th_log_level_t min_level,
   bool ansi_color
 ) {
-  sink->header.callback = ansi_color ? console_callback_color : console_callback;
+  sink->header.callback = ansi_color ? 
+    console_callback_color : console_callback;
   sink->min_level = min_level;
+  sink->message_in_progress = false;
+  sink->thread_writing = false;
+
+  if (pthread_mutex_init(&sink->lock, NULL))
+    return false;
+
+  return true;
+}
+
+void th_log_console_sink_deinit(th_log_console_sink_t *sink) {
+  pthread_mutex_destroy(&sink->lock);
 }

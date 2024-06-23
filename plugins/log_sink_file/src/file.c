@@ -5,9 +5,6 @@ static void file_callback(
   th_log_level_t level,
   const th_log_entry_t *restrict entry
 ) {
-  static bool message_in_progress = false;
-  static bool other_thread_writing = false;
-
   th_log_file_sink_t *sink = (th_log_file_sink_t *)header;
 
   if (sink->min_level > level)
@@ -15,14 +12,14 @@ static void file_callback(
 
   pthread_mutex_lock(&sink->lock);
 
-  if (other_thread_writing) {
+  if (sink->thread_writing) {
     pthread_mutex_unlock(&sink->lock);
     return;
   }
 
-  if (!message_in_progress) {
-    message_in_progress = true;
-    other_thread_writing = true;
+  if (!sink->message_in_progress) {
+    sink->message_in_progress = true;
+    sink->thread_writing = true;
     struct tm *timeinfo = localtime(&entry->timestamp);
     fprintf(
       sink->file,
@@ -43,8 +40,8 @@ static void file_callback(
   if (entry->is_last_part) {
     fprintf(sink->file, "\n");
     fflush(sink->file);
-    message_in_progress = false;
-    other_thread_writing = false;
+    sink->message_in_progress = false;
+    sink->thread_writing = false;
   }
 
   pthread_mutex_unlock(&sink->lock);
@@ -57,13 +54,15 @@ bool th_log_file_sink_init(
 ) {
   sink->header.callback = file_callback;
   sink->min_level = min_level;
+  sink->message_in_progress = false;
+  sink->thread_writing = false;
 
   sink->file = fopen(path, "a");
   if (!sink->file) {
     return false;
   }
 
-  if (pthread_mutex_init(&sink->lock, NULL) != 0) {
+  if (pthread_mutex_init(&sink->lock, NULL)) {
     fclose(sink->file);
     return false;
   }

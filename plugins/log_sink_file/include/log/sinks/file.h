@@ -11,8 +11,10 @@ typedef struct th_log_file_sink th_log_file_sink_t;
 struct th_log_file_sink {
   th_log_sink_header_t header;
   th_log_level_t min_level;
-  FILE *file;
   pthread_mutex_t lock;
+  FILE *file;
+  bool message_in_progress;
+  bool thread_writing;
 };
 
 bool th_log_file_sink_init(
