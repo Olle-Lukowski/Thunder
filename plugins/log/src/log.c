@@ -39,6 +39,7 @@ void th_log_args(
   entry.file = file;
   entry.line = line;
   entry.func = func;
+  entry.is_first_part = true;
   time(&entry.timestamp);
 
   int total_size = vsnprintf(NULL, 0, format, args);
@@ -49,7 +50,8 @@ void th_log_args(
   
   int offset = 0;
   while (offset < total_size) {
-    int to_write = TH_LOG_PART_SIZE;
+    int to_write = TH_LOG_PART_SIZE < 
+      total_size - offset ? TH_LOG_PART_SIZE : total_size - offset;
     /* 
      * this is a hacky way to ensure that we properly format the specifier.
      * if we don't do this, it might get cut off.
@@ -68,9 +70,11 @@ void th_log_args(
     }
 
     offset += written < to_write ? written : to_write;
-    if (offset >= total_size) {
+    if (entry.is_first_part)
+      entry.is_first_part = false;
+
+    if (offset >= total_size)
       entry.is_last_part = true;
-    }
     th_log(level, &entry);
   }
 

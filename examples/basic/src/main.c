@@ -39,7 +39,7 @@ void setup(ecs_world_t *world, ecs_app_desc_t *app) {
   for (int i = 0; i < 5; i ++) {
     static const char *names[] = {"Bob", "Alice", "Charlie", "Daisy", "Eve"};
     ecs_entity_t e = ecs_entity(world, { .name = names[i] });
-    ecs_add_id(world, e, SomeTag);
+    ecs_add(world, e, SomeTag);
   }
 
   ECS_SYSTEM(world, SomeSystem, EcsOnUpdate, [in] (Identifier, Name), SomeTag);

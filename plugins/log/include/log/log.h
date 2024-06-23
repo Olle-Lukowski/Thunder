@@ -32,6 +32,7 @@ struct th_log_entry {
   const char *restrict func;
   char message[TH_LOG_PART_SIZE + 1]; /* +1 for '\0' */
   time_t timestamp;
+  bool is_first_part;
   bool is_last_part;
 };
 

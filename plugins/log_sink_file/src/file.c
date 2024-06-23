@@ -12,7 +12,7 @@ static void file_callback(
 
   pthread_mutex_lock(&sink->lock);
 
-  if (sink->thread_writing) {
+  if (sink->thread_writing && entry->is_first_part) {
     pthread_mutex_unlock(&sink->lock);
     return;
   }

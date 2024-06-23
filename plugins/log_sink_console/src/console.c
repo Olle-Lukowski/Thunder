@@ -45,7 +45,7 @@ static void console_callback_color(
 
   pthread_mutex_lock(&sink->lock);
 
-  if (sink->thread_writing) {
+  if (sink->thread_writing && entry->is_first_part) {
     pthread_mutex_unlock(&sink->lock);
     return;
   }
