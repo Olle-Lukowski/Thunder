@@ -1,0 +1,11 @@
+using flecs.meta
+
+struct Position {
+  x = f32
+  y = f32
+  z = f32
+}
+
+ExampleEntity {
+  Position: {123, 456, 789}
+}

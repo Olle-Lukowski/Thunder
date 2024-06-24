@@ -1,0 +1,1 @@
+set(PLUGIN_glfw_DEPENDENCIES "")

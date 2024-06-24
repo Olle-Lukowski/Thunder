@@ -8,3 +8,5 @@ FetchContent_Declare(
   GIT_TAG        v4
 )
 FetchContent_MakeAvailable(flecs)
+
+add_library(flecs ALIAS flecs_static)

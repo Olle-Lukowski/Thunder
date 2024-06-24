@@ -1,0 +1,1 @@
+set(PLUGIN_windowing_core_DEPENDENCIES glfw)

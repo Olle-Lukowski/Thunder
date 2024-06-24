@@ -12,7 +12,7 @@ void SomeSystem(ecs_iter_t *it) {
 
   for (int i = 0; i < it->count; i++) {
     ecs_entity_t e = it->entities[i];
-    TH_LOG_INFO("Hello, %s!", ids[i].value);
+    /* Do anything with the data here */
   }
 }
 
@@ -31,8 +31,18 @@ void setup(ecs_world_t *world, ecs_app_desc_t *app) {
    * allows us to view stats and interact with the world at
    * https://www.flecs.dev/explorer/v4/ 
    */
-  ECS_IMPORT(world, FlecsStats);
   app->enable_rest = true;
+  app->enable_stats = true;
+  /* Change this number depending on how many threads you want to use */
+  ecs_set_threads(world, 1);
+
+  /* 
+   * Scripts allow for easy spawning and managing of entities, it is my personal
+   * preference for managing scenes. 
+   */
+  ecs_entity_t s = ecs_script(world, { .filename = "examples/basic/src/main.flecs" });
+  if (!s)
+    TH_LOG_FATAL("Failed to load main.flecs");
 
   ECS_TAG(world, SomeTag);
 

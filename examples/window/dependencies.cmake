@@ -1,0 +1,1 @@
+set(EXAMPLE_window_DEPENDENCIES core windowing log_sink_console)
