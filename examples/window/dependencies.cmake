@@ -1,1 +1,1 @@
-set(EXAMPLE_window_DEPENDENCIES core windowing log_sink_console)
+set(EXAMPLE_window_DEPENDENCIES thunder_core thunder_windowing thunder_log_sink_console)

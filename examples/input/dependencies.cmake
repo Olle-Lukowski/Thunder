@@ -1,0 +1,1 @@
+set(EXAMPLE_input_DEPENDENCIES thunder_core thunder_input thunder_log_sink_console)

@@ -1,1 +1,1 @@
-set(EXAMPLE_basic_DEPENDENCIES core log_sink_file log_sink_console)
+set(EXAMPLE_basic_DEPENDENCIES thunder_core thunder_log_sink_file thunder_log_sink_console)

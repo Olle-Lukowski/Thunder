@@ -1,0 +1,1 @@
+set(PLUGIN_thunder_windowing_core_DEPENDENCIES glfw)

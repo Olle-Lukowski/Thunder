@@ -1,0 +1,1 @@
+set(PLUGIN_thunder_core_DEPENDENCIES flecs)

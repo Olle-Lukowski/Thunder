@@ -1,0 +1,1 @@
+set(PLUGIN_thunder_input_DEPENDENCIES thunder_windowing thunder_input_core flecs)

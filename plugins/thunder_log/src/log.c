@@ -31,7 +31,7 @@ void th_log(
   time(&entry.timestamp);
 
   va_list main_args;
-  va_start(main_args, line);
+  va_start(main_args, format);
 
   for (int i = 0; i < TH_LOG_MAX_SINKS; i++) {
     if (th_log_sinks[i]) {

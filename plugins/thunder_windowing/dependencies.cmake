@@ -1,0 +1,1 @@
+set(PLUGIN_thunder_windowing_DEPENDENCIES thunder_windowing_core thunder_log flecs)
